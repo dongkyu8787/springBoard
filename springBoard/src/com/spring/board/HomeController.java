@@ -35,5 +35,11 @@ public class HomeController {
 		
 		return "home";
 	}
+	@RequestMapping(value = "/xp.do", method = RequestMethod.GET)
+	public String boardWrite(Locale locale, Model model) throws Exception{
+		
+		
+		return "";
+	}
 	
 }

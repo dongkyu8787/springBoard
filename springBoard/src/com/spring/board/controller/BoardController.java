@@ -1,10 +1,12 @@
 package com.spring.board.controller;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import javax.servlet.http.HttpSession;
 
@@ -29,50 +31,101 @@ import com.spring.board.vo.CodeVo;
 import com.spring.board.vo.PageVo;
 import com.spring.board.vo.UserVo;
 import com.spring.common.CommonUtil;
+import com.tobesoft.xplatform.license.A.E;
 
 @Controller
 public class BoardController {
-	
 	@Autowired 
 	boardService boardService;
 	
 	private static final Logger logger = LoggerFactory.getLogger(HomeController.class);
 	
 	//@RequestParam( required = false) : 처음 들어갈때 값이 없기 때문에  지정해줘야 한다. 
-	@RequestMapping(value = "/board/boardList.do", method = RequestMethod.GET)
+	@RequestMapping(value = "/board/boardList.do", method = {RequestMethod.GET,RequestMethod.POST})
 	public String boardList(Locale locale, Model model,PageVo pageVo
 			,@RequestParam( required = false) List<String> arrayParam
 			,UserVo userVo, HttpSession session) throws Exception{
+		
 		
 		List<BoardVo> boardList = new ArrayList<BoardVo>();
 		List<CodeVo> codeList = new ArrayList<CodeVo>();
 		int page = 1;
 		int totalCnt = 0;
 		
-		codeList = boardService.comCode();
 		
 		 if(arrayParam == null) {
 			if(pageVo.getPageNo() == 0){
 				pageVo.setPageNo(page);
 			}
+			
+			codeList = boardService.comCode();
 			boardList = boardService.SelectBoardList(arrayParam,pageVo);
 			totalCnt = boardService.selectBoardCnt();
 		
 		  }else { 
 			  pageVo.setPageNo(page); 
+			  boardList = boardService.SelectBoardList( arrayParam, pageVo); 
+			  totalCnt = boardService.selectTypeCnt(arrayParam); 
+		  }
+		 	model.addAttribute("codeList", codeList);
+			session.setAttribute("userInfo", userVo);
+			model.addAttribute("user", userVo);
+			model.addAttribute("arrayParam", arrayParam);
+			model.addAttribute("boardList", boardList);
+			model.addAttribute("totalCnt", totalCnt);
+			model.addAttribute("pageNo", page);
+			
+			
+			return "board/boardList";
+		
+		 
+	}
+	@RequestMapping(value = "/board/boardList2.do",produces = "application/text; charset=utf8"
+			,method = {RequestMethod.GET,RequestMethod.POST})
+	@ResponseBody
+	public String boardList2(Locale locale, PageVo pageVo
+			,@RequestParam( required = false) List<String> arrayParam
+			,UserVo userVo) throws Exception{
+				
+		CommonUtil commonUtil = new CommonUtil();
+		List<BoardVo> boardList = new ArrayList<BoardVo>();
+		int page = 1;
+		int totalCnt = 0;
+		
+		  pageVo.setPageNo(page); 
 		  boardList = boardService.SelectBoardList( arrayParam, pageVo); 
 		  totalCnt = boardService.selectTypeCnt(arrayParam); 
-		  }
+		  
+		  Map<String,Object> callback = new HashMap<String, Object>();
+		  callback.put("boardList", boardList);
+		  callback.put("totalCnt", totalCnt);
+		  callback.put("pageNo", pageVo.getPageNo());
+		  	  
+		  String callbackMsg = commonUtil.getJsonCallBackString(" ",callback);
+		  
+			System.out.println("callbackMsg::"+callbackMsg);
+			
+			return callbackMsg;
 		
-		 session.setAttribute("userInfo", userVo);
-		 model.addAttribute("user", userVo);
-		model.addAttribute("arrayParam", arrayParam);
-		model.addAttribute("boardList", boardList);
-		model.addAttribute("totalCnt", totalCnt);
-		model.addAttribute("pageNo", page);
-		model.addAttribute("codeList", codeList);
+	}
+	@RequestMapping(value = "/board/boardListAjax.do", method = {RequestMethod.GET,RequestMethod.POST})
+	public String boardListAjax(Locale locale, PageVo pageVo, Model model
+			,@RequestParam( required = false) List<String> arrayParam
+			,UserVo userVo) throws Exception{
+				
+			List<BoardVo> boardList = new ArrayList<BoardVo>();
+			int page = 1;
+			int totalCnt = 0;
+			  pageVo.setPageNo(page); 
+			boardList = boardService.SelectBoardList( arrayParam, pageVo); 
+			totalCnt = boardService.selectTypeCnt(arrayParam); 
+			
+			model.addAttribute("boardList", boardList);
+			model.addAttribute("totalCnt", totalCnt);
+			model.addAttribute("pageNo", page);
+			
+			return "board/boardList";
 		
-		return "board/boardList";
 	}
 	
 	
@@ -240,6 +293,8 @@ public class BoardController {
 		
 		return "redirect:/board/boardList.do";
 	}
+	
+
 }
 
 

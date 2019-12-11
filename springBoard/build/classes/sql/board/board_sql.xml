@@ -17,7 +17,7 @@
     </resultMap>
     <select id="boardList" parameterType="map" resultMap="boardVo">
         SELECT 
-		   c.CODE_NAME
+		  c.CODE_NAME
 		  ,b.BOARD_TYPE
 		  ,b.BOARD_NUM
 		  ,b.BOARD_TITLE
@@ -42,6 +42,7 @@
    		 )
 		</if>	
 		) b
+		
 		JOIN COM_CODE c
 			ON b.BOARD_TYPE = c.CODE_ID
 		WHERE NUMROW BETWEEN (${pageNo}-1)*10 + 1 AND (${pageNo})*10

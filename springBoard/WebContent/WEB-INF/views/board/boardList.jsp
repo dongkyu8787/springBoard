@@ -36,33 +36,52 @@
 				arrayParam.push($j(this).val());
 
 			});
+			
 			if($j("input:checkbox[name=chk]:checked").length == 0){
 				alert("하나이상 선택해 주세요.");
-				
+				return false;
 			}else{
-				location.href = "/board/boardList.do?arrayParam="+arrayParam;
-			}
-			
-			
+				
+					$j.ajax({
+					    url : "/board/boardListAjax.do",
+					    dataType: "html",
+					    type: "POST",
+					    data : "arrayParam="+arrayParam,
+					    success: function(data, textStatus, jqXHR)
+					    {
+					    	var Table = $j(data).find("#boardTable");
+					    	var total = $j(data).find("#total");
+					    	var page = $j(data).find("#pageing");
+					    	$j("#boardTable").html(Table);
+					    	$j("#total").html(total);
+					    	$j("#pageing").html(page);
+
+					    },
+					    error: function (jqXHR, textStatus, errorThrown)
+					    {
+					    	alert("실패");
+					    }
+					});
+				}
 		});
 
 	});
 
 </script>
 <body>
-
+<div id="test1">
 <table  align="center">
 	<tr>
 		<c:choose>
 			<c:when test="${ empty userInfo }">
-				<td align="left"><a href="/board/loginPage.do">login</a> <a href="/board/joinPage.do">join</a></td>
+				<td align="left">${userInfo.userId}</td>
 			</c:when>
 			<c:otherwise>
-				<td align="left">${userInfo.userId}</td>
+				<td align="left"><a href="/board/loginPage.do">login</a> <a href="/board/joinPage.do">join</a></td>
 			</c:otherwise>
 		</c:choose>
 		
-		<td align="right">
+		<td align="right" id="total">
 			total : ${totalCnt}
 		</td>
 	</tr>
@@ -81,7 +100,7 @@
 					</td>
 				</tr>
 				<c:forEach items="${boardList}" var="list">
-					<tr>
+					<tr id=CBList>
 						<td align="center">
 							${list.comcode.codeName}
 						</td>
@@ -100,10 +119,10 @@
 		<td align="right">
 		<c:choose>
 			<c:when test="${ empty userInfo }">
+				<a href="/board/logout.do" id="logout">로그아웃</a>
 				<a href ="/board/boardWrite.do">글쓰기</a>
 			</c:when>
 			<c:otherwise>
-				<a href="/board/logout.do" id="logout">로그아웃</a>
 				<a href ="/board/boardWrite.do">글쓰기</a>
 			</c:otherwise>
 		</c:choose>
@@ -113,13 +132,13 @@
 		<td>
 		<label><input type="checkbox" class="chk" id="checkall">전체</label>
 		<c:forEach items="${codeList}" var="list">
-		<label><input type="checkbox" class="chk" name="chk" value="${list.codeName }">${list.codeName}</label>
+		<label><input type="checkbox" class="chk" name="chk" value="${list.codeId }">${list.codeName}</label>
 		</c:forEach>
 		<input type="button" value="조회" id="submit">
 		</td>
 	</tr>
 	<tr>
-		<td>
+		<td id="pageing">
 		<c:choose>
 		<c:when test="${ empty arrayParam}">
 			<c:if test="${pageNo>1}">
@@ -167,6 +186,6 @@
 		</td>
 	</tr>
 	</table>
-	
+	</div>
 </body>
 </html>
